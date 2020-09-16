@@ -1,0 +1,11 @@
+# Folder with matlab code
+/daniel_stuff/*
+/code/matlab/*
+/code/data/*
+
+# OS file
+.DS_Store
+
+# Generated output file
+*.h5
+*.hdf5
