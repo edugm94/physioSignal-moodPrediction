@@ -48,7 +48,7 @@ hr_sp = SignalProcessing(
 
 dataset = CreateDataset(
     num_patients=1,
-    sampling_days=[7],
+    sampling_days=[3],
     path_to_csv='data/datos_E4/',
     output_path='out',
     output_filename='test.hdf5',

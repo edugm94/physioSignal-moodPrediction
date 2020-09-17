@@ -68,13 +68,14 @@ class CreateDataset():
                     self.hdf5_obj.create_dataset(signal + "/" + "day" + day + "/vectors", data=vectors)
                     self.hdf5_obj.create_dataset(signal + "/" + "day" + day + "/labels", data=labels)
 
+        # Close HDF5 file object one is finished the iteration
         self.__closeHDF5Oject()
 
 
 
 
 
-        
+
                     #print("Signal type processed: {} -- Day : {}".format(signal, day+1))
                     #print(arr_vector.shape)
                     #print(arr_label.shape)
