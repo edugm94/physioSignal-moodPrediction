@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 import pandas as pd
 import os
+import h5py
 from utils.SignalProcessing import SignalProcessing
 
 
@@ -24,12 +25,18 @@ class CreateDataset():
         self.signal_types = ['acc', 'eda', 'hr', 'temp']
         self.ws = window_size
         self.label = type_label
+        self.hdf5_obj = None
 
+    def __createHDF5Object(self):
+        self.hdf5_obj = h5py.File(self.output_path + self.output_filename, 'w')
+
+    def __closeHDF5Oject(self):
+        self.hdf5_obj.close()
 
     def createDataset(self):
 
         """
-        This methos creates for every patient, signal, and day
+        This method creates for every patient, signal, and day
         :return:
         """
 
@@ -39,26 +46,38 @@ class CreateDataset():
             if not os.path.exists(data_path):
                 raise NameError('There is no data path!\n'
                                 'Check if the attributes are correct, please.')
-            
-            for day in range(self.sampling_days[num_patient]):
-                ema_path = data_path + "EMAs" + str(num_patient + 1) + '.xlsx'
 
-                for signal in self.signal_types:
-                    signal_path = data_path + signal.upper() + str(day + 1) + '.csv'
+            for signal in self.signal_types:
+                signal_path = data_path + signal.upper() + str(day + 1) + '.csv'
 
-                    sp_obj = SignalProcessing(
+                for day in range(self.sampling_days[num_patient]):
+                    ema_path = data_path + "EMAs" + str(num_patient + 1) + '.xlsx'
+
+
+                    sp = SignalProcessing(
                         type_signal=signal,
                         path_to_file=signal_path,
                         path_to_ema=ema_path,
                         window_size=self.ws,
-                        type_label=self.label   # Create a variable to control the thype of label of dataset
-                                                # Different trainings will be carry out; different labels --> automatic
+                        type_label=self.label
+
                     )
 
-                    arr_vector, arr_label = sp_obj.getGroundTruth()
-                    print("Signal type processed: {} -- Day : {}".format(signal, day+1))
-                    print(arr_vector.shape)
-                    print(arr_label.shape)
+                    vectors, labels = sp.getGroundTruth()
+
+                    self.hdf5_obj.create_dataset(signal + "/" + "day" + day + "/vectors", data=vectors)
+                    self.hdf5_obj.create_dataset(signal + "/" + "day" + day + "/labels", data=labels)
+
+        self.__closeHDF5Oject()
+
+
+
+
+
+        
+                    #print("Signal type processed: {} -- Day : {}".format(signal, day+1))
+                    #print(arr_vector.shape)
+                    #print(arr_label.shape)
 
 
 
