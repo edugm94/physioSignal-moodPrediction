@@ -3,6 +3,13 @@
 /code/matlab/*
 /code/data/*
 
+# Test scripts
+/code/signal_filter.py
+/code/test.py
+/code/examples.py
+/code/hdf5_test.py
+/code/dataset_test.py
+
 # OS file
 .DS_Store
 
