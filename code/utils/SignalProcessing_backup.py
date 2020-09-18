@@ -301,3 +301,224 @@ class SignalProcessing:
         labels = np.array(labels).reshape(-1, 1)  # Return a column vector
 
         return vectors, labels  # Must return something
+
+
+
+
+
+
+
+
+
+
+    def getGroundTruth_v0(self):
+        """
+        This method takes the data frame computed in procSignal() method and chunk it according to the window
+        size input.
+        :return: A data frame with the discretized signal according to the input window size.
+        """
+        self.__procSignal()
+
+        signal_chunks = []
+        signal_chunks_array = []
+        num_ema = len(self.ema_ts) - 1  # Since in first index in Series is 0
+        for idx, ts in enumerate(self.ema_ts):   # ts stands for current timestamp in the for-loop
+            # It is divided in three part since extreme timestamps, that is, the first and last timestamp
+            # are analysed in a different fashion than mid-timestamps
+            if idx == num_ema:      # Last EMA data points selection according to window size
+                prev_ts = self.ema_ts[idx - 1]
+                diff = ts - prev_ts
+                available_data = len(self.df.loc[self.df['timestamp'] > ts])
+                if diff > self.ws/2:  # Left EMA points selection of last EMA
+                    #left_data = self.df[self.df['timestamp'].between(ts-self.ws/2, ts)]
+                    left_data = self.df[self.df['timestamp'].between(ts-self.ws/2+self.Ts, ts)]
+                else:
+                    left_data = self.df[self.df['timestamp'].between(ts-(diff/2)+self.Ts, ts)]
+                if available_data > self.ws/2:  # Right EMA points selection of first EMA
+                    right_data = self.df[self.df['timestamp'].between(ts+self.Ts, ts+self.ws/2)]  # +Ts to avoid duplicates
+                else:
+                    right_data = self.df[self.df['timestamp'].between(ts+self.Ts, ts+available_data)]  # +Ts to avoid duplicates
+
+            else:
+                next_ts = self.ema_ts[idx+1]
+                diff_next = next_ts - ts
+                if idx == 0:    # First EMA data points selection according window size
+                    available_data = len(self.df.loc[self.df['timestamp'] < ts])
+                    if available_data > self.ws/2:    # Left EMA points selection of first EMA
+                        #left_data = self.df[self.df['timestamp'].between(ts-self.ws/2, ts)]
+                        left_data = self.df[self.df['timestamp'].between(ts-self.ws/2+self.Ts, ts)]
+                    else:
+                        #left_data = self.df[self.df['timestamp'].between(ts-available_data, ts)]
+                        left_data = self.df[self.df['timestamp'].between(ts-available_data+self.Ts, ts)]
+                    if diff_next > self.ws/2:       # Right EMA points selection of first EMA
+                        right_data = self.df[self.df['timestamp'].between(ts+self.Ts, ts+(self.ws/2))]
+
+                    else:
+                        right_data = self.df[self.df['timestamp'].between(ts+self.Ts, ts+diff_next/2-self.Ts)]
+
+
+                else:       # Middle EMA data points selection according window size
+                    prev_ts = self.ema_ts[idx-1]
+                    diff_prev = ts - prev_ts
+                    if diff_prev > self.ws/2:       # Left EMA points selection of mid EMA
+                        #left_data = self.df[self.df['timestamp'].between(ts-self.ws/2, ts)]
+                        left_data = self.df[self.df['timestamp'].between(ts-self.ws/2+self.Ts, ts)]
+                    else:
+                        #left_data = self.df[self.df['timestamp'].between(ts-diff_prev/2, ts)]
+                        left_data = self.df[self.df['timestamp'].between(ts-diff_prev/2+self.Ts, ts)]
+                    if diff_next > self.ws/2:       # Right EMA points selection of mid EMA
+                        right_data = self.df[self.df['timestamp'].between(ts+self.Ts, ts+self.ws/2)]
+
+                    else:
+                        right_data = self.df[self.df['timestamp'].between(ts+self.Ts, ts+diff_next/2)]
+
+            left_right_data = pd.concat([left_data, right_data])
+            #left_right_array = left_right_data[self.type_signal].to_numpy().reshape(1, -1)
+            # Append timestamp block with its corresponding window size
+            signal_chunks.append(left_right_data)
+            #signal_chunks_array.append(left_right_array)
+
+        array_final = np.array(signal_chunks_array)
+        df_final = pd.concat(signal_chunks)
+        return df_final
+
+    def getGroundTruth_v1(self):
+        """
+        This method is a modified version of the previous method
+        In this case, the first and last timestamps are just ignored
+        :return:
+        """
+        self.__procSignal()
+        ema_ts = self.ema_ts[1:-1].reset_index(drop=True)   # Get rid of the first and last value: they are references
+        num_ema = len(ema_ts) - 1  # "-1" since in first index in Series is 0
+        signal_chunks = []
+        signal_chunks_array = []
+        for idx, ts in enumerate(ema_ts):
+            if idx == num_ema:  # Last EMA data points selection according to window size
+                prev_ts = ema_ts[idx - 1]
+                diff = ts - prev_ts     # code could be reduce by using np.abs of the difference
+                available_data = len(self.df.loc[self.df['timestamp'] > ts])
+                if diff > self.ws / 2:  # Left EMA points selection of last EMA
+                    # left_data = self.df[self.df['timestamp'].between(ts-self.ws/2, ts)]
+                    left_data = self.df[self.df['timestamp'].between(ts - self.ws / 2 + self.Ts, ts)]
+                else:
+                    left_data = self.df[self.df['timestamp'].between(ts - (diff / 2) + self.Ts, ts)]
+                if available_data > self.ws / 2:  # Right EMA points selection of first EMA
+                    right_data = self.df[self.df['timestamp'].between(ts + self.Ts, ts + self.ws / 2)]  # +Ts to avoid duplicates
+                else:
+                    right_data = self.df[self.df['timestamp'].between(ts + self.Ts, ts + available_data)]  # +Ts to avoid duplicates
+
+            else:
+                next_ts = ema_ts[idx + 1]
+                diff_next = next_ts - ts
+                if idx == 0:  # First EMA data points selection according window size
+                    available_data = len(self.df.loc[self.df['timestamp'] < ts])
+                    if available_data > self.ws / 2:  # Left EMA points selection of first EMA
+                        # left_data = self.df[self.df['timestamp'].between(ts-self.ws/2, ts)]
+                        left_data = self.df[self.df['timestamp'].between(ts - self.ws / 2 + self.Ts, ts)]
+                    else:
+                        # left_data = self.df[self.df['timestamp'].between(ts-available_data, ts)]
+                        left_data = self.df[self.df['timestamp'].between(ts - available_data + self.Ts, ts)]
+                    if diff_next > self.ws / 2:  # Right EMA points selection of first EMA
+                        right_data = self.df[self.df['timestamp'].between(ts + self.Ts, ts + (self.ws / 2))]
+                    else:
+                        right_data = self.df[self.df['timestamp'].between(ts + self.Ts, ts + diff_next / 2 - self.Ts)]
+
+                else:  # Middle EMA data points selection according window size
+                    prev_ts = ema_ts[idx - 1]
+                    diff_prev = ts - prev_ts
+                    if diff_prev > self.ws / 2:  # Left EMA points selection of mid EMA
+                        # left_data = self.df[self.df['timestamp'].between(ts-self.ws/2, ts)]
+                        left_data = self.df[self.df['timestamp'].between(ts - self.ws / 2 + self.Ts, ts)]
+                        right_data = self.df[self.df['timestamp'].between(ts + self.Ts, ts + self.ws / 2)]
+                    else:
+                        # left_data = self.df[self.df['timestamp'].between(ts-diff_prev/2, ts)]
+                        left_data = self.df[self.df['timestamp'].between(ts - diff_prev / 2 + self.Ts, ts)]
+                        right_data = self.df[self.df['timestamp'].between(ts + self.Ts, ts + diff_next / 2)]
+
+
+            left_right_data = pd.concat([left_data, right_data])
+            if self.type_signal != 'acc':
+                vector = left_right_data[self.type_signal].to_numpy()
+            else:
+                # Instead of forming an array here, we just keep the vectors in case we need to pad them. Later it will
+                # be formed the 4-dimensional array
+                vector_xf = left_right_data['x_f'].to_numpy().reshape(1, -1)
+                vector_yf = left_right_data['y_f'].to_numpy().reshape(1, -1)
+                vector_zf = left_right_data['z_f'].to_numpy().reshape(1, -1)
+                vector_nf = left_right_data['n_f'].to_numpy().reshape(1, -1)
+
+
+            '''
+            This is a pad module. This must be kept until we know what to do with those variable vectors.
+            To form the dataset in TensorFlow all vector must have same length.
+            '''
+            if self.type_signal != 'acc':
+                if len(vector) == self.ws * self.fs:
+                    pass    # No need to pad
+                else:
+                    dif = self.ws * self.fs - len(vector)
+                    if (dif % 2) == 0:
+                        pad_width = int(dif / 2)
+                        #vector_pad = np.pad(np.squeeze(vector), (0, 2 * pad_width), mode='mean')
+                        vector_pad = np.pad(np.squeeze(vector), (0, 2 * pad_width), mode='constant',
+                                            constant_values=(0, 0))
+
+                    else:
+                        pad_width = int(dif / 2)
+                        #vector_pad = np.pad(np.squeeze(vector), (0, 2 * pad_width + 1), mode='mean')
+                        vector_pad = np.pad(np.squeeze(vector), (0, 2 * pad_width + 1), mode='constant',
+                                            constant_values=(0, 0))
+
+                    assert len(vector_pad) == self.ws * self.fs , "Signal vector does not have correct length!"
+                    vector = vector_pad
+            else:
+                if vector_xf.shape[-1] == self.ws * self.fs and vector_yf.shape[-1] == self.ws * self.fs \
+                        and vector_zf.shape[-1] == self.ws * self.fs and vector_nf.shape[-1]: # if all ACC vector have correct length
+                    # we have to build up here vector variable not to break code
+                    vector = np.zeros([4, 1, vector_xf.shape[-1]])
+                    vector[0:1:] = vector_xf
+                    vector[1:1:] = vector_yf
+                    vector[2:1:] = vector_zf
+                    vector[3:1:] = vector_nf
+
+                else:
+                    dif_xf = self.ws * self.fs - len(vector_xf) # we assume we have same number of point for 4 columns
+                    if (dif_xf % 2) == 0:
+                        pad_width = int(dif_xf / 2)
+
+                        vector_xf_pad = np.pad(np.squeeze(vector_xf), (0, 2 * pad_width), mode='constant', constant_values=(0 ,0))
+                        vector_yf_pad = np.pad(np.squeeze(vector_yf), (0, 2 * pad_width), mode='constant', constant_values=(0 ,0))
+                        vector_zf_pad = np.pad(np.squeeze(vector_zf), (0, 2 * pad_width), mode='constant', constant_values=(0 ,0))
+                        vector_nf_pad = np.pad(np.squeeze(vector_nf), (0, 2 * pad_width), mode='constant', constant_values=(0 ,0))
+
+
+                    else:
+                        pad_width = int(dif_xf / 2)
+
+                        vector_xf_pad = np.pad(np.squeeze(vector_xf), (0, 2 * pad_width + 1), mode='constant', constant_values=(0 ,0))
+                        vector_yf_pad = np.pad(np.squeeze(vector_yf), (0, 2 * pad_width + 1), mode='constant', constant_values=(0 ,0))
+                        vector_zf_pad = np.pad(np.squeeze(vector_zf), (0, 2 * pad_width + 1), mode='constant', constant_values=(0 ,0))
+                        vector_nf_pad = np.pad(np.squeeze(vector_nf), (0, 2 * pad_width + 1), mode='constant', constant_values=(0 ,0))
+
+
+
+                    assert len(vector_xf_pad) == self.ws * self.fs and len(vector_yf_pad) == self.ws * self.fs \
+                           and len(vector_zf_pad) == self.ws * self.fs and len(vector_nf_pad) , 'ACC vector signals must have' \
+                                                                                        'same length!'
+                    # create vector --> In this case it will be a 3-dimensional array
+
+            signal_chunks_array.append(vector)
+
+        array_vector = np.array(signal_chunks_array)
+        if self.label == 'happines':
+            array_label = self.happiness[1:-1]
+        elif self.label == 'arousal':
+            array_label = self.arousal[1:-1]
+        elif self.label == 'mood':
+            array_label = self.mood[1:-1]
+        else:
+            array_label = None
+
+        return array_vector, array_label.to_numpy().reshape(-1, 1)
+

@@ -22,9 +22,10 @@ class CreateDataset():
         if not os.path.exists(path_to_csv):
             raise NameError('Wrong path!\n'
                             'Input a existing datafile path, please.')
+        # Create always a new directory if it does not exist
         if not os.path.exists(output_path):
-            raise NameError('Wrong path!\n'
-                            'Input a existing output datafile path, please.')
+            os.mkdir(output_path)
+
         assert num_patients == len(sampling_days), 'Sampling days array length must be equal' \
                                                       'as the number of input patients, check it please.'
         self.num_patients = num_patients
