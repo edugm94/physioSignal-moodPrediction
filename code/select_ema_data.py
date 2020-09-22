@@ -52,7 +52,7 @@ def main():
 
 
 
-    dataset_obj = CreateDataset(
+    dataset_obj = SelectEMAData(
         num_patients=num_patients,
         sampling_days=sampling_days,
         path_to_csv=path_data,

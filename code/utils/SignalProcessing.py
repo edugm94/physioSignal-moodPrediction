@@ -225,8 +225,14 @@ class SignalProcessing:
         self.__procSignal()  # This function will read CSV file and filter the corresponding signal
 
         n_ts = len(self.ema_ts)  # Total number of EMA
-        vectors = []
-        labels = []
+
+        # Initializacion of the accumulative data array
+        if self.type_signal == 'acc':
+            vectors = np.array([]).reshape(-1, 1, 4)
+        else:
+            vectors = np.array([]).reshape(-1, 1)
+        #array where all all significat labels will be stored
+        labels = np.array([]).reshape(-1, 1)
 
         for idx, ts in enumerate(self.ema_ts):
             idx += 1  # It is added 1 because Pandas Series starts with 1 index
@@ -276,26 +282,14 @@ class SignalProcessing:
                 vector[:, :, 1] = df_aux['y_f'].to_numpy().reshape(-1, 1)
                 vector[:, :, 2] = df_aux['z_f'].to_numpy().reshape(-1, 1)
                 vector[:, :, 3] = df_aux['n_f'].to_numpy().reshape(-1, 1)
-
-                # check if the vector size is the correct one, if not pad it
-                if vector.shape[0] != self.fs * self.ws + 1:
-                    pad_len = int(self.fs * self.ws - vector.shape[0])
-                    npad = ((0, pad_len), (0, 0), (0, 0))
-                    vector = np.pad(vector, pad_width=npad, mode='constant', constant_values=0)
-
             else:
                 vector = df_aux[self.type_signal].to_numpy().reshape(-1, 1)  # Watch out the ACC signal
 
-                if vector.shape[0] != self.fs * self.ws + 1:
-                    pad_len = int(self.fs * self.ws - vector.shape[0])
-                    npad = ((0, pad_len), (0, 0))  # Second element is to avoid to pad in the axis=1
-                    vector = np.pad(vector, pad_width=npad, mode='constant', constant_values=0)
-
             # Label is the mode between l_bound and r_bound
-            label = stat.mode(df_aux[self.label])
+            label = df_aux[self.label].to_numpy().reshape(-1, 1)
 
-            vectors.append(vector)
-            labels.append(label)
+            vectors = np.append(vectors, vector, axis=0)
+            labels = np.append(labels, label, axis=0)
 
         vectors = np.array(vectors)
         labels = np.array(labels).reshape(-1, 1)  # Return a column vector
