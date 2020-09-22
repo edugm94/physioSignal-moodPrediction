@@ -13,7 +13,7 @@ import h5py
 from utils.SignalProcessing import SignalProcessing
 
 
-class CreateDataset():
+class SelectEMAData():
     """
     Class dedicated to create a dataset containing all raw signals from .CSV files. It is intended to be fully
     automatic if correct arguments are introduced.
@@ -44,7 +44,7 @@ class CreateDataset():
     def __closeHDF5Oject(self):
         self.hdf5_obj.close()
 
-    def createDataset(self):
+    def selectEMAData(self):
 
         """
         This method creates a dataset containing raw signals with its corresponding label. The output file has the

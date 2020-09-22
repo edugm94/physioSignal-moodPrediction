@@ -9,7 +9,7 @@
 #   University of Orebro, Sweden
 #
 import argparse
-from utils.CreateDataset import CreateDataset
+from utils.SelectEMAData import SelectEMAData
 
 def argParser():
     parser = argparse.ArgumentParser(description="This script's target is to set up a dataset by creating "
@@ -62,7 +62,7 @@ def main():
         type_label=label
     )
 
-    dataset_obj.createDataset()
+    dataset_obj.selectEMAData()
 
 if __name__ == '__main__':
     main()
