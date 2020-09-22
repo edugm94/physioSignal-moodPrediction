@@ -20,8 +20,10 @@ import statistics as stat
 class SignalProcessing:
     """
     This class aim is to process the input physiological signals, creating a Dataframe in Pandas
-    with the information needed to feed the deep neural network. It will separate values according
-    to a time window which size can modify when creating a class object instance.
+    with the information needed to feed the deep neural network.
+    The returned data is named as significant data, i.e data which falls within the set window size
+    around each answered EMA.
+    It will be returned both: vectors of filtered signals, and expanded labels.
     """
 
     type_signal = None
