@@ -30,7 +30,7 @@ class SignalProcessing:
     col_name = None
     file_path = None
 
-    def __init__(self, type_signal, path_to_file, path_to_ema, window_size, type_label):
+    def __init__(self, type_signal, path_to_file, path_to_ema, window_size, type_label, all):
         if not os.path.exists(path_to_file):
             raise NameError('Wrong path!\n'
                             'Input a existing data file path, please.')
@@ -54,7 +54,8 @@ class SignalProcessing:
         self.arousal = None     # ¡OJO!: Could be deleted --> it is only necessary label attribute
         self.mood = None        # ¡OJO!: Could be deleted --> it is only necessary label attribute
         self.label = type_label.lower() # can be 'happiness', 'arousal' or 'mood'
-
+        self.all = all          # Attribute which indicates if it will be used all patients data or just one patient
+                                # (Needed to know in order to normalize signals)
     def __readCSV(self):
         if self.type_signal in ('acc', 'eda', 'hr', 'temp', 'bvp'):
             self.df = pd.read_csv(self.file_path, names=self.col_name, header=None)
@@ -133,7 +134,11 @@ class SignalProcessing:
         self.df['y_f'] = self.__filterSignal(data=self.df['y'], type_filter='band')
         self.df['z_f'] = self.__filterSignal(data=self.df['z'], type_filter='band')
         self.df['n_f'] = self.__filterSignal(data=self.df['n'], type_filter='band')
+
         # Need to extract first 10 minutes of each signal!!!!
+        if self.all == 1:
+            pass
+
 
     def __procEda(self):
         """
@@ -141,14 +146,22 @@ class SignalProcessing:
         :return: Adds the corresponding columns to the object data frame
         """
         self.df['eda_f'] = self.__filterSignal(data=self.df['eda'], type_filter='low')
+
         # Need to extract first 10 minutes of each signal!!!!
+        if self.all == 1:   # Need to be extract first 10 min
+            pass
+
 
     def __procTemp(self):
         # Need to extract first 10 minutes of each signal!!!!
+        if self.all == 1:
+            pass
         pass
 
     def __procHr(self):
         # Need to extract first 10 minutes of each signal!!!!
+        if self.all == 1:
+            pass
         pass
 
     def __assignLabel(self):

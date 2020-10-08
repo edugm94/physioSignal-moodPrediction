@@ -30,7 +30,7 @@ def argParser():
                         default='out/1_ema_data/', type=str)
     #parser.add_argument('-n_out', '--output_name', help='Name of the dataset: HDF5 file.', default='p1_ema_mood_60.h5',
     #                    type=str)
-    parser.add_argument('-t', '--type', help='Type of dataset: unique patient or multi patient. Codes:'
+    parser.add_argument('-a', '--all', help='Type of dataset: unique patient or multi patient. Codes:'
                                              ' 0 for unique patient dataset; 1 for all patients dataset', default=0,
                         type=int)
 
@@ -39,6 +39,7 @@ def argParser():
 
 
 def main():
+
     args = argParser()
 
     num_patients = args.num_patients
@@ -47,8 +48,7 @@ def main():
     label = args.label
     path_data = args.data_path
     output_path = args.output_path
-    #output_name = args.output_name
-    #type = args.type
+    all = args.all
 
 
 
@@ -57,7 +57,7 @@ def main():
         sampling_days=sampling_days,
         path_to_csv=path_data,
         output_path=output_path,
-        #output_filename=output_name,
+        all=all,
         window_size=window_size,
         type_label=label
     )

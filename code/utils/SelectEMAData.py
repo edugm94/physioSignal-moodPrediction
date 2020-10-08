@@ -22,7 +22,7 @@ class SelectEMAData:
     The user will input some information regarding how many patients is needed to be processed and the number of
     sampling days.
     """
-    def __init__(self, num_patients, sampling_days, window_size, type_label, path_to_csv, output_path):
+    def __init__(self, num_patients, sampling_days, window_size, type_label, path_to_csv, output_path, all):
         if not os.path.exists(path_to_csv):
             raise NameError('Wrong path!\n'
                             'Input a existing datafile path, please.')
@@ -36,7 +36,7 @@ class SelectEMAData:
         self.sampling_days = sampling_days
         self.path_to_csv = path_to_csv
         self.output_path = output_path
-        #self.output_filename = output_filename
+        self.all = all      # Indicates if used all patients data or just one patient (signals normalization)
         self.signal_types = ['acc', 'eda', 'hr', 'temp']
         self.ws = window_size
         self.label = type_label
@@ -91,7 +91,8 @@ class SelectEMAData:
                             path_to_file=signal_path,
                             path_to_ema=ema_path,
                             window_size=self.ws,
-                            type_label=self.label
+                            type_label=self.label,
+                            all=all
                         )
 
                         vectors, labels = sp.getGroundTruth()
