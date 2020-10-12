@@ -56,6 +56,8 @@ class SignalProcessing:
         self.label = type_label.lower() # can be 'happiness', 'arousal' or 'mood'
         self.all = all          # Attribute which indicates if it will be used all patients data or just one patient
                                 # (Needed to know in order to normalize signals)
+        self.norm_time = 10     # Time used to normalize HR signal (in minutes)
+
     def __readCSV(self):
         if self.type_signal in ('acc', 'eda', 'hr', 'temp', 'bvp'):
             self.df = pd.read_csv(self.file_path, names=self.col_name, header=None)
@@ -135,8 +137,13 @@ class SignalProcessing:
         self.df['z_f'] = self.__filterSignal(data=self.df['z'], type_filter='band')
         self.df['n_f'] = self.__filterSignal(data=self.df['n'], type_filter='band')
 
-        # Need to extract first 10 minutes of each signal!!!!
+
+        # Need to extract first 10 minutes of the signal
         if self.all == 1:
+            self.df = self.df.drop(self.df.index[0:int(self.norm_time*60*self.fs)]).reset_index(drop=True)
+            self.df.index = range(len(self.df))
+            self.df['index'] = range(len(self.df))
+        else:
             pass
 
 
@@ -147,22 +154,43 @@ class SignalProcessing:
         """
         self.df['eda_f'] = self.__filterSignal(data=self.df['eda'], type_filter='low')
 
-        # Need to extract first 10 minutes of each signal!!!!
-        if self.all == 1:   # Need to be extract first 10 min
+
+        # Need to extract first 10 minutes of the signal
+        if self.all == 1:
+            self.df = self.df.drop(self.df.index[0:int(self.norm_time * 60 * self.fs)]).reset_index(drop=True)
+            self.df.index = range(len(self.df))
+            self.df['index'] = range(len(self.df))
+        else:
             pass
 
 
     def __procTemp(self):
-        # Need to extract first 10 minutes of each signal!!!!
+
+        # Need to extract first 10 minutes of the signal
         if self.all == 1:
+            self.df = self.df.drop(self.df.index[0:int(self.norm_time * 60 * self.fs)]).reset_index(drop=True)
+            self.df.index = range(len(self.df))
+            self.df['index']= range(len(self.df))
+        else:
             pass
-        pass
+
 
     def __procHr(self):
-        # Need to extract first 10 minutes of each signal!!!!
+        # Need to normalize signal
         if self.all == 1:
+            # Extract average value of first 10 min
+            basal_hr = np.mean(self.df[self.col_name].iloc[0:int(self.norm_time * 60 * self.fs)]).to_numpy()
+
+            #Get rid of the first 10 min
+            self.df = self.df.drop(self.df.index[0:int(self.norm_time * 60 * self.fs)]).reset_index(drop=True)
+            self.df.index = range(len(self.df))
+            self.df['index'] = range(len(self.df))
+
+            # Normalize remaining signal with basal HR value
+            self.df[self.col_name] = self.df[self.col_name]/basal_hr
+        else:
             pass
-        pass
+
 
     def __assignLabel(self):
         """
@@ -309,4 +337,4 @@ class SignalProcessing:
         vectors = np.array(vectors)
         labels = np.array(labels).reshape(-1, 1)  # Return a column vector
 
-        return vectors, labels  # Must return something
+        return vectors, labels

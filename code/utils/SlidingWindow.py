@@ -11,7 +11,12 @@
 
 
 class SlidingWindow:
-    def __init__(self):
-        pass
+    def __init__(self, overlapping, samp_freq, window_feat_size):
+        self.ov = overlapping
+        self.fs = samp_freq
+        self.wf = window_feat_size
 
 
+
+    def extractRawVector(self):
+        print(self.ov)
