@@ -15,12 +15,12 @@ def argParser():
     parser = argparse.ArgumentParser(description="This script's target is to set up a dataset by creating "
                                                  "HDF5 files containing the raw signals with its corresponding labels"
                                                  " for each EMA answered with a specific window size.")
-    parser.add_argument('-n_p', '--num_patients', help='Number of patients containing the dataset', default=3, type=int)
+    parser.add_argument('-n_p', '--num_patients', help='Number of patients containing the dataset', default=2, type=int)
     parser.add_argument('-s_d', '--sampling_days', help='List of numbers. Express the number of available sampling days'
                                                         ' for each patient. The index in the list corresponds to each '
                                                         'patient. E.g: [4, 5, 3] --> Patient 1 (4 sampling days); '
                                                         'patient 2 (5 sampling days); patient 3 (3 sampling days) and '
-                                                        'so on.', nargs='+', default=["2", "2", "2"])
+                                                        'so on.', nargs='+', default=["5", "5"])
     parser.add_argument('-ws', '--window_size', help='Time size by which EMA will be chunked.', type=int, default=60)
     parser.add_argument('-l', '--label', help='The label which that you want to build up the dataset.', default='mood',
                         type=str)

@@ -138,11 +138,12 @@ class SignalProcessing:
         self.df['n_f'] = self.__filterSignal(data=self.df['n'], type_filter='band')
 
 
-        # Need to extract first 10 minutes of the signal
+        # No need to extract part of the signal: it wil be commented in case of future need
         if self.all == 1:
-            self.df = self.df.drop(self.df.index[0:int(self.norm_time*60*self.fs)]).reset_index(drop=True)
-            self.df.index = range(len(self.df))
-            self.df['index'] = range(len(self.df))
+            pass
+            #self.df = self.df.drop(self.df.index[0:int(self.norm_time*60*self.fs)]).reset_index(drop=True)
+            #self.df.index = range(len(self.df))
+            #self.df['index'] = range(len(self.df))
         else:
             pass
 
@@ -155,36 +156,38 @@ class SignalProcessing:
         self.df['eda_f'] = self.__filterSignal(data=self.df['eda'], type_filter='low')
 
 
-        # Need to extract first 10 minutes of the signal
+        # No need to extract part of the signal: it wil be commented in case of future need
         if self.all == 1:
-            self.df = self.df.drop(self.df.index[0:int(self.norm_time * 60 * self.fs)]).reset_index(drop=True)
-            self.df.index = range(len(self.df))
-            self.df['index'] = range(len(self.df))
+            pass
+            #self.df = self.df.drop(self.df.index[0:int(self.norm_time * 60 * self.fs)]).reset_index(drop=True)
+            #self.df.index = range(len(self.df))
+            #self.df['index'] = range(len(self.df))
         else:
             pass
 
 
     def __procTemp(self):
 
-        # Need to extract first 10 minutes of the signal
+        # No need to extract part of the signal: it wil be commented in case of future need
         if self.all == 1:
-            self.df = self.df.drop(self.df.index[0:int(self.norm_time * 60 * self.fs)]).reset_index(drop=True)
-            self.df.index = range(len(self.df))
-            self.df['index']= range(len(self.df))
+            pass
+            #self.df = self.df.drop(self.df.index[0:int(self.norm_time * 60 * self.fs)]).reset_index(drop=True)
+            #self.df.index = range(len(self.df))
+            #self.df['index'] = range(len(self.df))
         else:
             pass
 
 
     def __procHr(self):
-        # Need to normalize signal
+        # For the normalition process: take first 10 min; compute average; divide this value to every indidivual value
         if self.all == 1:
             # Extract average value of first 10 min
             basal_hr = np.mean(self.df[self.col_name].iloc[0:int(self.norm_time * 60 * self.fs)]).to_numpy()
 
-            #Get rid of the first 10 min
-            self.df = self.df.drop(self.df.index[0:int(self.norm_time * 60 * self.fs)]).reset_index(drop=True)
-            self.df.index = range(len(self.df))
-            self.df['index'] = range(len(self.df))
+            # No need to get rid of the first 10 min. Leave code here in case of future need
+            #self.df = self.df.drop(self.df.index[0:int(self.norm_time * 60 * self.fs)]).reset_index(drop=True)
+            #self.df.index = range(len(self.df))
+            #self.df['index'] = range(len(self.df))
 
             # Normalize remaining signal with basal HR value
             self.df[self.col_name] = self.df[self.col_name]/basal_hr
@@ -271,11 +274,14 @@ class SignalProcessing:
 
         # Initializacion of the accumulative data array
         if self.type_signal == 'acc':
-            vectors = np.array([]).reshape(-1, 1, 4)
+            #vectors = np.array([]).reshape(-1, 1, 4)
+            vectors = np.array([]).reshape(1, -1, 4)
         else:
-            vectors = np.array([]).reshape(-1, 1)
+            #vectors = np.array([]).reshape(-1, 1)
+            vectors = np.array([]).reshape(1, -1)
         #array where all all significat labels will be stored
-        labels = np.array([]).reshape(-1, 1)
+        #labels = np.array([]).reshape(-1, 1)
+        labels = np.array([]).reshape(1, -1)
 
         for idx, ts in enumerate(self.ema_ts):
             idx += 1  # It is added 1 because Pandas Series starts with 1 index
@@ -320,21 +326,33 @@ class SignalProcessing:
 
             # Vector is data of a specific timestamp
             if self.type_signal == 'acc':
-                vector = np.zeros([df_aux.shape[0], 1, 4])
+                #vector = np.zeros([df_aux.shape[0], 1, 4])
+                vector = np.zeros([1, df_aux.shape[0], 4])
+                '''
                 vector[:, :, 0] = df_aux['x_f'].to_numpy().reshape(-1, 1)
                 vector[:, :, 1] = df_aux['y_f'].to_numpy().reshape(-1, 1)
                 vector[:, :, 2] = df_aux['z_f'].to_numpy().reshape(-1, 1)
                 vector[:, :, 3] = df_aux['n_f'].to_numpy().reshape(-1, 1)
+                '''
+                vector[:, :, 0] = df_aux['x_f'].to_numpy().reshape(1, -1)
+                vector[:, :, 1] = df_aux['y_f'].to_numpy().reshape(1, -1)
+                vector[:, :, 2] = df_aux['z_f'].to_numpy().reshape(1, -1)
+                vector[:, :, 3] = df_aux['n_f'].to_numpy().reshape(1, -1)
             else:
-                vector = df_aux[self.type_signal].to_numpy().reshape(-1, 1)  # Watch out the ACC signal
+                #vector = df_aux[self.type_signal].to_numpy().reshape(-1, 1)  # Watch out the ACC signal
+                vector = df_aux[self.type_signal].to_numpy().reshape(1, -1)
 
             # Label is the mode between l_bound and r_bound
-            label = df_aux[self.label].to_numpy().reshape(-1, 1)
+            #label = df_aux[self.label].to_numpy().reshape(-1, 1)
+            label = df_aux[self.label].to_numpy().reshape(1, -1)
 
-            vectors = np.append(vectors, vector, axis=0)
-            labels = np.append(labels, label, axis=0)
+            #vectors = np.append(vectors, vector, axis=0)
+            vectors = np.append(vectors, vector, axis=1)
+            #labels = np.append(labels, label, axis=0)
+            labels = np.append(labels, label, axis=1)
 
         vectors = np.array(vectors)
-        labels = np.array(labels).reshape(-1, 1)  # Return a column vector
+        #labels = np.array(labels).reshape(-1, 1)  # Return a column vector
+        labels = np.array(labels).reshape(1, -1)
 
         return vectors, labels

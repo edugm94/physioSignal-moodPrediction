@@ -3,13 +3,12 @@
 clear;
 
 NUM_PATIENTS=2
-SAMPLING_DAYS="4 6"
+SAMPLING_DAYS="5 5"
 WINDOW_SIZE=60
 LABEL="mood"
 PATH_DATA="data/datos_E4/"
 OUTPUT_PATH="out/1_ema_data/"
-#OUTPUT_NAME="p1_ema_mood_60.h5"
-ALL=0
+ALL=1
 
 echo $1
 

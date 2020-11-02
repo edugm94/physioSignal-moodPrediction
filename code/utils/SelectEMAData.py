@@ -26,25 +26,35 @@ class SelectEMAData:
         if not os.path.exists(path_to_csv):
             raise NameError('Wrong path!\n'
                             'Input a existing datafile path, please.')
-        # Create always a new directory if it does not exist
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
+
 
         assert num_patients == len(sampling_days), 'Sampling days array length must be equal' \
                                                       'as the number of input patients, check it please.'
         self.num_patients = num_patients
         self.sampling_days = sampling_days
         self.path_to_csv = path_to_csv
-        self.output_path = output_path
+        self.output_path = output_path + type_label + '/'
+        if all == 0:
+            self.output_path = self.output_path + 'individual/'
+        else:
+            self.output_path = self.output_path + 'all/'
         self.all = all      # Indicates if used all patients data or just one patient (signals normalization)
         self.signal_types = ['acc', 'eda', 'hr', 'temp']
         self.ws = window_size
         self.label = type_label
         self.hdf5_obj = None
+        # Create always a new directory if it does not exist
+        if not os.path.exists(self.output_path):
+            os.makedirs(self.output_path)
 
     def __createHDF5Object(self, num_patient):
-        self.hdf5_obj = h5py.File(self.output_path +
-                                  'p' + str(num_patient+1) + '_ema_' + self.label + '_' + str(self.ws) + '.h5', 'w')
+        if self.all == 1:
+            self.hdf5_obj = h5py.File(self.output_path +
+                                      'p' + str(num_patient + 1) + '_ema_' + self.label + '_' + str(self.ws) +
+                                      '_all.h5', 'w')
+        else:
+            self.hdf5_obj = h5py.File(self.output_path +
+                                      'p' + str(num_patient+1) + '_ema_' + self.label + '_' + str(self.ws) + '.h5', 'w')
 
     def __closeHDF5Oject(self):
         self.hdf5_obj.close()
@@ -79,7 +89,7 @@ class SelectEMAData:
             with tqdm(range(self.sampling_days[num_patient]), position=0) as t:
                 for day in t:
                     t.set_description('Patient {} | day {}: '.format(num_patient+1, day+1))
-                    ema_path = data_path + "EMAs" + str(num_patient + 1) + '.xlsx'
+                    ema_path = data_path + "EMAs" + str(day + 1) + '.xlsx'
 
                     for signal in self.signal_types:
                         signal_path = data_path + signal.upper() + str(day + 1) + '.csv'
@@ -92,15 +102,16 @@ class SelectEMAData:
                             path_to_ema=ema_path,
                             window_size=self.ws,
                             type_label=self.label,
-                            all=all
+                            all=self.all
                         )
 
                         vectors, labels = sp.getGroundTruth()
 
                         # Create for each type of signal and day: two datasets containing both: labels and raw signals
-                        self.hdf5_obj.create_dataset(signal + "/" + "day" + str(day + 1) + "/vectors", data=vectors)
-                        self.hdf5_obj.create_dataset(signal + "/" + "day" + str(day + 1) + "/labels", data=labels)
-
+                        #self.hdf5_obj.create_dataset(signal + "/" + "day" + str(day + 1) + "/vectors", data=vectors)
+                        #self.hdf5_obj.create_dataset(signal + "/" + "day" + str(day + 1) + "/labels", data=labels)
+                        self.hdf5_obj.create_dataset("day" + str(day + 1) + '/' + signal + "/vectors", data=vectors)
+                        self.hdf5_obj.create_dataset("day" + str(day + 1) + '/' + signal + "/labels", data=labels)
         # Close HDF5 file object one is finished the iteration
         self.__closeHDF5Oject()
 
