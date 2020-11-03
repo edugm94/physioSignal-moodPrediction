@@ -84,7 +84,7 @@ class CreateRAWData:
                     raw_vector_matrix = slideW_obj.extractRawVector()
 
                     # create data set containing the matrix of raw vectors
-                    self.out_h5.create_dataset(name=day + '/' + signal  + "/raw_vectors", data=raw_vector_matrix)
+                    self.out_h5.create_dataset(name=day + '/' + signal + "/raw_vectors", data=raw_vector_matrix)
 
             # Close objects
             self.__closeHDF5Objects()
