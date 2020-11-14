@@ -2,13 +2,13 @@
 
 clear;
 
-NUM_PATIENTS=2
-SAMPLING_DAYS="5 5"
+NUM_PATIENTS=4  #2
+SAMPLING_DAYS="9 15 13 13"  #"5 5"
 WINDOW_SIZE=60
 LABEL="mood"
 PATH_DATA="data/datos_E4/"
 OUTPUT_PATH="out/1_ema_data/"
-ALL=1
+ALL=0
 
 if [[ $1 == '-help' ]]
 then

@@ -78,7 +78,6 @@ class SelectEMAData:
 
         for num_patient in range(self.num_patients):
             data_path = self.path_to_csv + 'P' + str(num_patient + 1) + '/P' + str(num_patient + 1) + '_Complete/'
-
             # Open HDF5 object to store data (one for each patient)
             self.__createHDF5Object(num_patient)
 

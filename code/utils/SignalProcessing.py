@@ -57,6 +57,7 @@ class SignalProcessing:
         self.all = all          # Attribute which indicates if it will be used all patients data or just one patient
                                 # (Needed to know in order to normalize signals)
         self.norm_time = 10     # Time used to normalize HR signal (in minutes)
+        self.empty = False
 
     def __readCSV(self):
         if self.type_signal in ('acc', 'eda', 'hr', 'temp', 'bvp'):
@@ -206,31 +207,74 @@ class SignalProcessing:
                 df['y_mo'] --> mood label
         """
         label_df = pd.read_excel(self.ema_path)
-        self.happiness = label_df.iloc[:, 5][1:-1]  # Drop first and last value from EMA excel column (for all values)
-        self.arousal = label_df.iloc[:, 6][1:-1]
-        self.mood = label_df.iloc[:, 7][1:-1]
-        ema_timestamp_aux = label_df.iloc[:, 4]
-        self.end_ts = self.init_ts + ema_timestamp_aux.iloc[-1]   # We keep last 'ts' (time where stop collecting data)
-        ema_timestamp_aux = ema_timestamp_aux[1:-1]
-        self.ema_ts = self.init_ts + np.squeeze(ema_timestamp_aux.to_frame().apply(np.ceil)) #contains actual 'ts'
+
+        # Clean data frame of NA according to the value of type_label attribute
+        if self.label == 'arousal':
+            label_df = label_df[label_df.iloc[:, 6].notna()]
+            self.arousal = label_df.iloc[:, 6][1:-1]
+            ema_timestamp_aux = label_df.iloc[:, 4]
+            self.end_ts = self.init_ts + ema_timestamp_aux.iloc[
+                -1]  # We keep last 'ts' (time where stop collecting data)
+            ema_timestamp_aux = ema_timestamp_aux[1:-1]
+            self.ema_ts = pd.Series(self.init_ts +
+                                    np.squeeze(ema_timestamp_aux.to_frame().apply(np.ceil)))  # contains actual 'ts'
+            if len(self.ema_ts) == 1 and len(self.arousal) == 1:
+                self.ema_ts = pd.Series([self.ema_ts[0], self.ema_ts[0]])
+                self.arousal = pd.Series([self.arousal, self.arousal])
+
+            if len(self.ema_ts) == 0 and len(self.arousal) == 0:
+                self.empty = True
+            else:
+                ar_interp = interp1d(self.ema_ts, self.arousal, kind='nearest', fill_value="extrapolate")
+                aux_ar = ar_interp(self.df['timestamp'])
+                self.df['arousal'] = aux_ar.astype(int)
+
+        elif self.label == 'happiness':
+            label_df = label_df[label_df.iloc[:, 5].notna()]
+            self.happiness = label_df.iloc[:, 5][1:-1]
+            ema_timestamp_aux = label_df.iloc[:, 4]
+            self.end_ts = self.init_ts + ema_timestamp_aux.iloc[
+                -1]  # We keep last 'ts' (time where stop collecting data)
+            ema_timestamp_aux = ema_timestamp_aux[1:-1]
+            self.ema_ts = pd.Series(self.init_ts +
+                                    np.squeeze(ema_timestamp_aux.to_frame().apply(np.ceil)))  # contains actual 'ts'
+            if len(self.ema_ts) == 1 and len(self.happiness) == 1:
+                self.ema_ts = pd.Series([self.ema_ts[0], self.ema_ts[0]])
+                self.happiness = pd.Series([self.happiness, self.happiness])
+
+            if len(self.ema_ts) == 0 and len(self.happiness) == 0:
+                self.empty = True
+            else:
+                ha_interp = interp1d(self.ema_ts, self.happiness, kind='nearest', fill_value="extrapolate")
+                aux_ha = ha_interp(self.df['timestamp'])
+                self.df['happiness'] = aux_ha.astype(int)
+
+        elif self.label == 'mood':
+            label_df = label_df[label_df.iloc[:, 7].notna()]
+            self.mood = label_df.iloc[:, 7][1:-1]
+            ema_timestamp_aux = label_df.iloc[:, 4]
+            self.end_ts = self.init_ts + ema_timestamp_aux.iloc[
+                -1]  # We keep last 'ts' (time where stop collecting data)
+            ema_timestamp_aux = ema_timestamp_aux[1:-1]
+            self.ema_ts = pd.Series(self.init_ts +
+                                    np.squeeze(ema_timestamp_aux.to_frame().apply(np.ceil)))  # contains actual 'ts'
+
+            if len(self.ema_ts) == 1 and len(self.mood) == 1:
+                self.ema_ts = pd.Series([self.ema_ts[0], self.ema_ts[0]])
+                self.mood = pd.Series([self.mood, self.mood])
+
+            if len(self.ema_ts) == 0 and len(self.mood) == 0:
+                self.empty = True
+            else:
+                mo_interp = interp1d(self.ema_ts, self.mood, kind='nearest', fill_value="extrapolate")
+                aux_mo = mo_interp(self.df['timestamp'])
+                self.df['mood'] = aux_mo.astype(int)
 
         ################  Test module  ##################
         #This block just prove the computation to obtain the timestamp values for the different signals
         #aux_df = self.ema_ts.to_frame()
         #aux_df['time_ema'] = aux_df['Interp (s)'].apply(datetime.fromtimestamp)
         #################################################
-
-        ha_interp = interp1d(self.ema_ts, self.happiness, kind='nearest', fill_value="extrapolate")
-        ar_interp = interp1d(self.ema_ts, self.arousal, kind='nearest', fill_value="extrapolate")
-        mo_interp = interp1d(self.ema_ts, self.mood, kind='nearest', fill_value="extrapolate")
-
-        aux_ha = ha_interp(self.df['timestamp'])
-        aux_ar = ar_interp(self.df['timestamp'])
-        aux_mo = mo_interp(self.df['timestamp'])
-
-        self.df['happiness'] = aux_ha.astype(int)
-        self.df['arousal'] = aux_ar.astype(int)
-        self.df['mood'] = aux_mo.astype(int)
 
     def __procSignal(self):
         """
@@ -269,6 +313,10 @@ class SignalProcessing:
         """
 
         self.__procSignal()  # This function will read CSV file and filter the corresponding signal
+
+        # In case there are not EMA registered, it must be returned nothing
+        if self.empty:
+            return np.array([[-1]]), np.array([[-1]])
 
         n_ts = len(self.ema_ts)  # Total number of EMA
 

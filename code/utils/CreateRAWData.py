@@ -73,18 +73,24 @@ class CreateRAWData:
                     vectors = dataset.get('vectors')[()]
                     labels = dataset.get('labels')[()]
 
-                    slideW_obj = SlidingWindow(
-                        vectors=vectors,
-                        labels=labels,
-                        overlapping=self.overlapping,
-                        samp_freq=self.signaL_freq_dict[signal],
-                        window_feat_size=self.window_feat_size,
-                        signal_type=signal
-                    )
-                    raw_vector_matrix = slideW_obj.extractRawVector()
+                    #if vectors.shape[1] == 1 and labels.shape[1] == 1:
+                    if vectors.shape[1] and labels.shape[1] == 1:
+                        # In case of an error detected from input HDF5 file, set -1 in the output file
+                        # indicating that there is a mistake
+                        self.out_h5.create_dataset(name=day + '/' + signal + "/raw_vectors", data=-1)
+                    else:
+                        slideW_obj = SlidingWindow(
+                            vectors=vectors,
+                            labels=labels,
+                            overlapping=self.overlapping,
+                            samp_freq=self.signaL_freq_dict[signal],
+                            window_feat_size=self.window_feat_size,
+                            signal_type=signal
+                        )
+                        raw_vector_matrix = slideW_obj.extractRawVector()
 
-                    # create data set containing the matrix of raw vectors
-                    self.out_h5.create_dataset(name=day + '/' + signal + "/raw_vectors", data=raw_vector_matrix)
+                        # create data set containing the matrix of raw vectors
+                        self.out_h5.create_dataset(name=day + '/' + signal + "/raw_vectors", data=raw_vector_matrix)
 
             # Close objects
             self.__closeHDF5Objects()
