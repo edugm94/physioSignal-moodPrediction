@@ -206,7 +206,8 @@ class SignalProcessing:
                 df['y_ar'] --> arousal label
                 df['y_mo'] --> mood label
         """
-        label_df = pd.read_excel(self.ema_path)
+        #label_df = pd.read_excel(self.ema_path)
+        label_df = pd.read_excel(self.ema_path, engine='openpyxl')
 
         # Clean data frame of NA according to the value of type_label attribute
         if self.label == 'arousal':
@@ -253,8 +254,7 @@ class SignalProcessing:
             label_df = label_df[label_df.iloc[:, 7].notna()]
             self.mood = label_df.iloc[:, 7][1:-1]
             ema_timestamp_aux = label_df.iloc[:, 4]
-            self.end_ts = self.init_ts + ema_timestamp_aux.iloc[
-                -1]  # We keep last 'ts' (time where stop collecting data)
+            self.end_ts = self.init_ts + ema_timestamp_aux.iloc[-1]  # We keep last 'ts' (time where stop collecting data)
             ema_timestamp_aux = ema_timestamp_aux[1:-1]
             self.ema_ts = pd.Series(self.init_ts +
                                     np.squeeze(ema_timestamp_aux.to_frame().apply(np.ceil)))  # contains actual 'ts'
