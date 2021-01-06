@@ -97,9 +97,6 @@ class SelectEMAData:
                         # Call SignalProcessing Class to obtain vectors and labels for a certain emotion
                         # with a fixed window size
 
-                        if num_patient == 2:
-                            print("Stop!")
-
                         sp = SignalProcessing(
                             type_signal=signal,
                             path_to_file=signal_path,
