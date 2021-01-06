@@ -13,6 +13,7 @@ import h5py
 import os
 from tqdm import tqdm
 from utils.SlidingWindow import SlidingWindow
+import numpy as np
 
 class CreateRAWData:
     def __init__(self, output_path, path_to_hdf5_ema, overlapping, window_feat_size, label, all):
@@ -53,7 +54,7 @@ class CreateRAWData:
         # Initially we read the HDF5 containing the EMA data points
         # and create the object file for the output HDF5
 
-        input_files = os.listdir(self.path_to_hdf5_ema)
+        input_files = sorted(os.listdir(self.path_to_hdf5_ema))
         num_patients = len(input_files)
 
         for patient_id, file in enumerate(tqdm(input_files)):
@@ -77,7 +78,7 @@ class CreateRAWData:
                     if vectors.shape[1] and labels.shape[1] == 1:
                         # In case of an error detected from input HDF5 file, set -1 in the output file
                         # indicating that there is a mistake
-                        self.out_h5.create_dataset(name=day + '/' + signal + "/raw_vectors", data=-1)
+                        self.out_h5.create_dataset(name=day + '/' + signal + "/raw_vectors", data=np.array([[-1]]))
                     else:
                         slideW_obj = SlidingWindow(
                             vectors=vectors,

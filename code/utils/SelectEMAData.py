@@ -90,11 +90,16 @@ class SelectEMAData:
                     t.set_description('Patient {} | day {}: '.format(num_patient+1, day+1))
                     ema_path = data_path + "EMAs" + str(day + 1) + '.xlsx'
 
+
                     for signal in self.signal_types:
                         signal_path = data_path + signal.upper() + str(day + 1) + '.csv'
 
                         # Call SignalProcessing Class to obtain vectors and labels for a certain emotion
                         # with a fixed window size
+
+                        if num_patient == 2:
+                            print("Stop!")
+
                         sp = SignalProcessing(
                             type_signal=signal,
                             path_to_file=signal_path,
