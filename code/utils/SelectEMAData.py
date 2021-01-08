@@ -111,8 +111,8 @@ class SelectEMAData:
                         # Create for each type of signal and day: two datasets containing both: labels and raw signals
                         #self.hdf5_obj.create_dataset(signal + "/" + "day" + str(day + 1) + "/vectors", data=vectors)
                         #self.hdf5_obj.create_dataset(signal + "/" + "day" + str(day + 1) + "/labels", data=labels)
-                        self.hdf5_obj.create_dataset("day" + str(day + 1) + '/' + signal + "/vectors", data=vectors)
-                        self.hdf5_obj.create_dataset("day" + str(day + 1) + '/' + signal + "/labels", data=labels)
+                        self.hdf5_obj.create_dataset(str(day + 1) + '/' + signal + "/vectors", data=vectors)
+                        self.hdf5_obj.create_dataset(str(day + 1) + '/' + signal + "/labels", data=labels)
         # Close HDF5 file object one is finished the iteration
         self.__closeHDF5Oject()
 
