@@ -56,6 +56,10 @@ class SlidingWindow:
 
                 vector_with_label = np.concatenate((actual_label, raw_vector), axis=1)    # Transform to column vector
                 vectors_matrix.append(vector_with_label)                       # wont be needed when data is transformed
+
+                if len(vectors_matrix) == 236:
+                    print('para')
+
             else:
                 # Since the ACC signal has 4 channels, the raw vector is done in a different way
                 raw_vector = self.vectors[:, ini:fin, :]
@@ -67,6 +71,8 @@ class SlidingWindow:
                 actual_label = np.tile(actual_label, (1, 1, 4))
                 vector_with_label = np.concatenate((actual_label, raw_vector), axis=1)
                 vectors_matrix.append(vector_with_label)
+                if len(vectors_matrix) == 236:
+                    print('para')
 
             st += 1
             num += 1

@@ -38,6 +38,19 @@ class DatasetBuilder:
             eda_ds = self.hdf5[day + '/eda'].get('raw_vectors')[()]
             temp_ds = self.hdf5[day + '/temp'].get('raw_vectors')[()]
 
+            # When a day has -1 as raw_vectors means that there was some problem while extracting the vectors
+            if acc_ds.shape == (1, 1):
+                continue
+
+            if (acc_ds.shape[0] == hr_ds.shape[0] == eda_ds.shape[0] == temp_ds.shape[0]):
+                pass
+            else:
+                num_vec = min(acc_ds.shape[0], hr_ds.shape[0], eda_ds.shape[0], temp_ds.shape[0])
+                acc_ds = acc_ds[0:num_vec, :, : ]
+                eda_ds = eda_ds[0:num_vec, :]
+                hr_ds = hr_ds[0:num_vec, :]
+                temp_ds = temp_ds[0:num_vec, :]
+
             # It is extracted the label assigned for each signal to check they coicinde
             # TODO: It may be modified the code when an error occur!
             acc_l = acc_ds.item((0, 0, 0))
@@ -47,6 +60,8 @@ class DatasetBuilder:
 
             if acc_l == hr_l == eda_l == temp_l:
                 label = int(acc_l)
+                label = np.array([[label]]) # Transform into an array, so that it can be concatenated
+                label_ = label if len(label_) == 0 else np.concatenate((label_, label), axis=0)
             else:
                 print("Error! Labels do not coincide.")
 
@@ -66,3 +81,4 @@ class DatasetBuilder:
             temp_ = temp_x if len(temp_) == 0 else np.concatenate((temp_, temp_x), axis=0)
 
 
+        print('Hola!')
