@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 #
 #   Author: Eduardo Gutierrez Maestro
-#   Date: 2020.11.14
+#   Date: 2021.01.08
 #   email: eduardo.gutierrez-maestro@oru.se
 #
 #   Center for Applied Autonomous Sensor Systems (AASS), Cognitive Robotic Systems Labs
@@ -10,8 +10,7 @@
 #
 import h5py
 
-# Call it better DatasetBuilder
-class SetupTFData:
+class DatasetBuilder:
     def __init__(self, path_to_hdf5):
         self.path_hdf5 = path_to_hdf5
 
