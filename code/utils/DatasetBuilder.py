@@ -83,4 +83,10 @@ class DatasetBuilder:
             temp_ = temp_x if len(temp_) == 0 else np.concatenate((temp_, temp_x), axis=0)
 
 
-        print('Hola!')
+        dataset = tf.data.Dataset.from_tensor_slices(
+            ({"acc": acc_,
+              "eda": eda_,
+              "hr": hr_,
+              "temp": temp_}, label_)
+        )
+        return dataset
