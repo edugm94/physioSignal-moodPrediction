@@ -9,6 +9,8 @@
 #   University of Orebro, Sweden
 #
 import h5py
+import numpy as np
+import tensorflow as tf
 
 class DatasetBuilder:
     def __init__(self, path_to_hdf5):
@@ -17,7 +19,14 @@ class DatasetBuilder:
     def __readHDF5(self):
         self.hdf5 = h5py.File(self.path_hdf5, 'r')
 
-    def createTFDataset(self):
+    def buildDataset(self):
         self.__readHDF5()
 
-        print('holla')
+        acc = []
+        eda = []
+        hr = []
+        temp = []
+        labels = []
+
+
+        print(tf.__version__)
