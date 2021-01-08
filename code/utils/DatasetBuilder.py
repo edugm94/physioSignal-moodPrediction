@@ -59,9 +59,11 @@ class DatasetBuilder:
             temp_l = temp_ds.item((0, 0))
 
             if acc_l == hr_l == eda_l == temp_l:
-                label = int(acc_l)
-                label = np.array([[label]]) # Transform into an array, so that it can be concatenated
+                # First column must be taken and stored in label_ array
+
+                label = hr_ds[:, 0].astype(int).reshape(-1, 1)
                 label_ = label if len(label_) == 0 else np.concatenate((label_, label), axis=0)
+
             else:
                 print("Error! Labels do not coincide.")
 
