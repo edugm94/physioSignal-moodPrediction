@@ -18,6 +18,33 @@ class DatasetBuilder:
 
     def __readHDF5(self):
         self.hdf5 = h5py.File(self.path_hdf5, 'r')
+    def __cleanDataset(self, data_, label_):
+        # Obtain an accounting of hbiw many vectors there is for each emotion
+        unique, counts = np.unique(label_, return_counts=True)
+        counting = dict(zip(unique, counts))
+
+        # Get the total amount of vectors and the threshold to filter dictionary
+        tot = sum(counting.values())
+        threshold = tot * 0.1
+
+        # Get a dictionary with the emotions that should be cleaned from the initial variables
+        # It is kept a dictionary to check the lenght of the cleaned values at the end
+        emo_del_dict = dict(filter(lambda elem: elem[1] < threshold, counting.items()))
+        # Array that contains the value of the emotions to be cleaned in the "labels" variable
+        emo_del_arr = np.array(list(emo_del_dict.keys()))
+
+        # Array containing the index that should be deleted from "data" and "label"
+        indx_del_arr = np.where(label_ == emo_del_arr)[0]
+        assert indx_del_arr.shape[0] == sum(
+            emo_del_dict.values()), "The amount of vectors to delete does not match! Check it."
+
+        # Clean the final array according to the found indexes
+        labels_clean = np.delete(label_, indx_del_arr).reshape(-1, 1)
+        data_clean = dict()
+        for k, v in data_.items():
+            data_clean[k] = np.delete(v, indx_del_arr, axis=0)
+
+        return data_clean, labels_clean
 
     def buildDataset(self):
         # TODO: Possible idea! It can be passed as well a list of files in case it is desired to create a TF dataset
@@ -82,11 +109,15 @@ class DatasetBuilder:
             eda_ = eda_x if len(eda_) == 0 else np.concatenate((eda_, eda_x), axis=0)
             temp_ = temp_x if len(temp_) == 0 else np.concatenate((temp_, temp_x), axis=0)
 
+            data_ = {
+                "acc": acc_,
+                "eda": eda_,
+                "hr": hr_,
+                "temp": temp_
+            }
 
-        dataset = tf.data.Dataset.from_tensor_slices(
-            ({"acc": acc_,
-              "eda": eda_,
-              "hr": hr_,
-              "temp": temp_}, label_)
-        )
+        # Clean the less representative emotions captured by the smartwatch
+        data_, label_ = self.__cleanDataset(data_, label_)
+        dataset = tf.data.Dataset.from_tensor_slices((data_, label_))
+
         return dataset
