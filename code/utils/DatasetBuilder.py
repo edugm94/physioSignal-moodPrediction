@@ -18,7 +18,7 @@ class DatasetBuilder:
 
     def __readHDF5(self):
         self.hdf5 = h5py.File(self.path_hdf5, 'r')
-        
+
     def __cleanDataset(self, data_, label_):
         # Obtain an accounting of hbiw many vectors there is for each emotion
         unique, counts = np.unique(label_, return_counts=True)
@@ -109,6 +109,11 @@ class DatasetBuilder:
             hr_ = hr_x if len(hr_) == 0 else np.concatenate((hr_, hr_x), axis=0)
             eda_ = eda_x if len(eda_) == 0 else np.concatenate((eda_, eda_x), axis=0)
             temp_ = temp_x if len(temp_) == 0 else np.concatenate((temp_, temp_x), axis=0)
+
+            # Third channel is added in order not to crush with Conv1D layer from TensorFlow
+            hr_ = hr_.reshape(-1, hr_.shape[1], 1)
+            eda_ = eda_.reshape(-1, eda_.shape[1], 1)
+            temp_ = temp_.reshape(-1, temp_.shape[1], 1)
 
             data_ = {
                 "acc": acc_,
