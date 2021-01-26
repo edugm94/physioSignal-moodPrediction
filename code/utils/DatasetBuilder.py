@@ -101,6 +101,11 @@ class DatasetBuilder:
             eda_x = np.delete(eda_ds, [0], axis=1)
             temp_x = np.delete(temp_ds, [0], axis=1)
 
+            # Third channel is added in order not to crush with Conv1D layer from TensorFlow
+            hr_x = hr_x.reshape(-1, hr_x.shape[1], 1)
+            eda_x = eda_x.reshape(-1, eda_x.shape[1], 1)
+            temp_x = temp_x.reshape(-1, temp_x.shape[1], 1)
+
             # TODO: I am assuming that all vectors have same lenght. In case two consecutive EMAs are too close, the
             #  lenght of the vector can be shorter. It should be done something about this: either pad the vector or
             #  discard the vector. ATTENTION!
@@ -110,17 +115,9 @@ class DatasetBuilder:
             eda_ = eda_x if len(eda_) == 0 else np.concatenate((eda_, eda_x), axis=0)
             temp_ = temp_x if len(temp_) == 0 else np.concatenate((temp_, temp_x), axis=0)
 
-            # Third channel is added in order not to crush with Conv1D layer from TensorFlow
-            hr_ = hr_.reshape(-1, hr_.shape[1], 1)
-            eda_ = eda_.reshape(-1, eda_.shape[1], 1)
-            temp_ = temp_.reshape(-1, temp_.shape[1], 1)
 
-            data_ = {
-                "acc": acc_,
-                "eda": eda_,
-                "hr": hr_,
-                "temp": temp_
-            }
+
+        data_ = dict(acc=acc_, eda=eda_, hr=hr_, temp=temp_)
 
         # Clean the less representative emotions captured by the smartwatch
         data_, label_ = self.__cleanDataset(data_, label_)
