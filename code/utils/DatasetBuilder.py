@@ -11,6 +11,7 @@
 import h5py
 import numpy as np
 import tensorflow as tf
+from sklearn.preprocessing import LabelEncoder
 
 class DatasetBuilder:
     def __init__(self, path_to_hdf5):
@@ -46,6 +47,19 @@ class DatasetBuilder:
             data_clean[k] = np.delete(v, indx_del_arr, axis=0)
 
         return data_clean, labels_clean
+
+    def __setupLabels(self, labels):
+        le = LabelEncoder()
+        le.fit(labels)
+        labels_new = le.transform(labels)
+        labels_oh = tf.keras.utils.to_categorical(labels_new)
+
+        return labels_oh
+
+
+
+
+
 
     def buildDataset(self):
         # TODO: Possible idea! It can be passed as well a list of files in case it is desired to create a TF dataset
@@ -121,6 +135,7 @@ class DatasetBuilder:
 
         # Clean the less representative emotions captured by the smartwatch
         data_, label_ = self.__cleanDataset(data_, label_)
-        dataset = tf.data.Dataset.from_tensor_slices((data_, label_))
+        labelOH_ = self.__setupLabels(label_.reshape(-1,))
+        dataset = tf.data.Dataset.from_tensor_slices((data_, labelOH_))
 
         return dataset
