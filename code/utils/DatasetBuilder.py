@@ -130,8 +130,11 @@ class DatasetBuilder:
             temp_ = temp_x if len(temp_) == 0 else np.concatenate((temp_, temp_x), axis=0)
 
 
-
-        data_ = dict(acc=acc_, eda=eda_, hr=hr_, temp=temp_)
+        # It is converted to float32, since it is default datatype for Tensorflow
+        data_ = dict(acc=np.float32(acc_),
+                     eda=np.float32(eda_),
+                     hr=np.float32(hr_),
+                     temp=np.float32(temp_))
 
         # Clean the less representative emotions captured by the smartwatch
         data_, label_ = self.__cleanDataset(data_, label_)
