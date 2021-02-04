@@ -12,15 +12,19 @@ import h5py
 import numpy as np
 import tensorflow as tf
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+
 
 class DatasetBuilder:
-    def __init__(self, path_to_hdf5):
+    def __init__(self, path_to_hdf5, leave_one_out):
         self.path_hdf5 = path_to_hdf5
+        self.leave_one_out = leave_one_out
 
     def __readHDF5(self):
         self.hdf5 = h5py.File(self.path_hdf5, 'r')
 
     def __cleanDataset(self, data_, label_):
+        '''This method is used to get rid of meaningless emotions'''
         # Obtain an accounting of hbiw many vectors there is for each emotion
         unique, counts = np.unique(label_, return_counts=True)
         counting = dict(zip(unique, counts))
@@ -56,10 +60,31 @@ class DatasetBuilder:
 
         return labels_oh
 
+    def __splitTrainTest(self, data, labels):
+        '''This method aims to split dataset into train and test set.
+        The proportions are 75% and 25% according to the paper.'''
+        ratio = 0.25
+        seed = 42
 
+        accTrainData, accTestData, accTrainLabel, accTestLabel = train_test_split(data["acc"], labels,
+                                                                                  test_size=ratio, random_state=seed)
+        edaTrainData, edaTestData, edaTrainLabel, edaTestLabel = train_test_split(data["eda"], labels,
+                                                                                  test_size=ratio, random_state=seed)
+        tempTrainData, tempTestData, tempTrainLabel, tempTestLabel = train_test_split(data["temp"], labels,
+                                                                                  test_size=ratio, random_state=seed)
+        hrTrainData, hrTestData, hrTrainLabel, hrTestLabel = train_test_split(data["hr"], labels,
+                                                                                  test_size=ratio, random_state=seed)
 
+        # Check that all labels are the same
+        assert accTrainLabel.all() == edaTrainLabel.all() == tempTrainLabel.all() == hrTrainLabel.all()
+        assert accTestLabel.all() == edaTestLabel.all() == tempTestLabel.all() == hrTestLabel.all()
 
+        trainData = dict(acc=accTrainData, eda=edaTrainData, temp=tempTrainData, hr=hrTrainData)
+        trainLabel = accTrainLabel
+        testData = dict(acc=accTestData, eda=edaTestData, temp=tempTestData, hr=hrTestData)
+        testLabel = accTestLabel
 
+        return trainData, trainLabel, testData, testLabel
 
     def buildDataset(self):
         # TODO: Possible idea! It can be passed as well a list of files in case it is desired to create a TF dataset
@@ -139,6 +164,13 @@ class DatasetBuilder:
         # Clean the less representative emotions captured by the smartwatch
         data_, label_ = self.__cleanDataset(data_, label_)
         labelOH_ = self.__setupLabels(label_.reshape(-1,))
-        dataset = tf.data.Dataset.from_tensor_slices((data_, labelOH_))
 
-        return dataset
+        if self.leave_one_out:
+            return -1
+        else:
+            trainData, trainLabel, testData, testLabel = self.__splitTrainTest(data_, labelOH_)
+
+            trainDataset = tf.data.Dataset.from_tensor_slices((trainData, trainLabel))
+            testDataset = tf.data.Dataset.from_tensor_slices((testData, testLabel))
+
+            return trainDataset, testDataset
