@@ -170,7 +170,7 @@ class DatasetBuilder:
         else:
             trainData, trainLabel, testData, testLabel = self.__splitTrainTest(data_, labelOH_)
 
-            trainDataset = tf.data.Dataset.from_tensor_slices((trainData, trainLabel))
-            testDataset = tf.data.Dataset.from_tensor_slices((testData, testLabel))
+            #trainDataset = tf.data.Dataset.from_tensor_slices((trainData, trainLabel))
+            #testDataset = tf.data.Dataset.from_tensor_slices((testData, testLabel))
 
-            return trainDataset, testDataset
+            return trainData, trainLabel, testData, testLabel
