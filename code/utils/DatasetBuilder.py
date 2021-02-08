@@ -16,9 +16,10 @@ from sklearn.model_selection import train_test_split
 
 
 class DatasetBuilder:
-    def __init__(self, path_to_hdf5, leave_one_out):
+    def __init__(self, path_to_hdf5, leave_one_out, one_hot):
         self.path_hdf5 = path_to_hdf5
         self.leave_one_out = leave_one_out
+        self.one_hot = one_hot
 
     def __readHDF5(self):
         self.hdf5 = h5py.File(self.path_hdf5, 'r')
@@ -52,7 +53,7 @@ class DatasetBuilder:
 
         return data_clean, labels_clean
 
-    def __setupLabels(self, labels):
+    def __oneHotLabels(self, labels):
         le = LabelEncoder()
         le.fit(labels)
         labels_new = le.transform(labels)
@@ -163,12 +164,14 @@ class DatasetBuilder:
 
         # Clean the less representative emotions captured by the smartwatch
         data_, label_ = self.__cleanDataset(data_, label_)
-        labelOH_ = self.__setupLabels(label_.reshape(-1,))
+
+        if self.one_hot:
+            label_ = self.__oneHotLabels(label_.reshape(-1,))
 
         if self.leave_one_out:
             return -1
         else:
-            trainData, trainLabel, testData, testLabel = self.__splitTrainTest(data_, labelOH_)
+            trainData, trainLabel, testData, testLabel = self.__splitTrainTest(data_, label_)
 
             #trainDataset = tf.data.Dataset.from_tensor_slices((trainData, trainLabel))
             #testDataset = tf.data.Dataset.from_tensor_slices((testData, testLabel))
