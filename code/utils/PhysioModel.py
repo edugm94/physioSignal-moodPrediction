@@ -22,13 +22,13 @@ class PhysioModel(Model):
         super(PhysioModel, self).__init__()
         # Declare all layers in raw
 
-        self.conv1 = Conv1D(filters=32, kernel_size=16, activation='relu', input_shape=(None, 1920, 4),
+        self.conv1_acc = Conv1D(filters=32, kernel_size=16, activation='relu', input_shape=(None, 1920, 4),
                                 dtype='float32', name='conv1_ACC')
-        self.conv2 = Conv1D(filters=32, kernel_size=16, activation='relu', dtype='float32', name='conv2_ACC')
+        self.conv2_acc = Conv1D(filters=32, kernel_size=16, activation='relu', dtype='float32', name='conv2_ACC')
         self.dropOut = Dropout(0.5)
-        self.pool = MaxPooling1D(pool_size=2, name='poolACC')
+        self.pool_acc = MaxPooling1D(pool_size=2, name='poolACC')
         self.flatten = Flatten()
-        self.fc = Dense(100, activation='relu', dtype='float32', name='fc')
+        self.fc = Dense(200, activation='relu', dtype='float32', name='fc')
         self.logits = Dense(num_classes, activation='softmax', dtype='float32', name='logits')
 
 
@@ -57,10 +57,10 @@ class PhysioModel(Model):
         # print("La forma que tiene el vector logits es: {}".format(x.shape))
 
 
-        x = self.conv1(x_in)
-        x = self.conv2(x)
+        x = self.conv1_acc(x_in)
+        x = self.conv2_acc(x)
         x = self.dropOut(x)
-        x = self.pool(x)
+        x = self.pool_acc(x)
         x = self.flatten(x)
         x = self.fc(x)
         x = self.logits(x)
